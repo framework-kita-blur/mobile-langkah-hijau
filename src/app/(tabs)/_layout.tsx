@@ -19,7 +19,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={String(color)} />
           ),
         }}
       />
@@ -27,7 +27,9 @@ export default function TabsLayout() {
         name="vehicle"
         options={{
           title: 'Vehicle',
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="motorbike" size={size + 4} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="motorbike" size={size + 4} color={String(color)} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -35,7 +37,7 @@ export default function TabsLayout() {
         options={{
           title: 'Trip',
           tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? 'map' : 'map-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'map' : 'map-outline'} size={size} color={String(color)} />
           ),
         }}
       />
@@ -44,7 +46,7 @@ export default function TabsLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={String(color)} />
           ),
         }}
       />

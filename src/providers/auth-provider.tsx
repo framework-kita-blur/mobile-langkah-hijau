@@ -1,12 +1,24 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { router } from 'expo-router';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
-import { mockUser, type User } from '@/data/mock';
+import { setUnauthorizedHandler } from '@/lib/api';
+import { getStoredUser, getToken } from '@/lib/token-storage';
 import * as authService from '@/services/auth-service';
+import type { User } from '@/types/user';
 
 type AuthContextValue = {
-  /** Pengguna aktif. Selama masih placeholder, nilainya data mock walau belum login. */
-  user: User;
+  user: User | null;
   isSignedIn: boolean;
+  /** True selama sesi tersimpan dipulihkan saat aplikasi dibuka. */
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (fullName: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -14,12 +26,9 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * PLACEHOLDER: belum ada penjagaan rute. Semua layar bisa dibuka agar UI mudah ditinjau.
- * TODO: setelah Supabase Auth terpasang, simpan sesi dan lindungi rute (Stack.Protected).
- */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setUser(await authService.signIn(email, password));
@@ -30,13 +39,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await authService.signOut();
-    setUser(null);
+    try {
+      await authService.signOut();
+    } catch {
+      // Tetap keluarkan pengguna walau penyimpanan lokal gagal dibersihkan.
+    } finally {
+      setUser(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      void signOut().finally(() => router.replace('/login'));
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [signOut]);
+
+  useEffect(() => {
+    let active = true;
+
+    const restoreSession = async () => {
+      try {
+        const [token, storedUser] = await Promise.all([getToken(), getStoredUser()]);
+        if (active && token && storedUser) {
+          setUser(storedUser);
+        } else if (active && (token || storedUser)) {
+          await authService.signOut();
+        }
+      } catch {
+        if (active) setUser(null);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user: user ?? mockUser, isSignedIn: user !== null, signIn, signUp, signOut }),
-    [user, signIn, signUp, signOut],
+    () => ({ user, isSignedIn: user !== null, isLoading, signIn, signUp, signOut }),
+    [user, isLoading, signIn, signUp, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

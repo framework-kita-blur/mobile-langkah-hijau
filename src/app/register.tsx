@@ -5,6 +5,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { AuthScreen } from '@/components/auth-screen';
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function RegisterScreen() {
@@ -25,11 +26,18 @@ export default function RegisterScreen() {
       Alert.alert('Kata sandi tidak sama', 'Konfirmasi kata sandi harus sama dengan kata sandi.');
       return;
     }
+
     setLoading(true);
-    // PLACEHOLDER: signUp belum membuat akun. Lihat src/services/auth-service.ts.
-    await signUp(fullName.trim(), email.trim(), password);
-    setLoading(false);
-    router.replace('/home');
+    try {
+      await signUp(fullName.trim(), email.trim(), password);
+    } catch (error) {
+      Alert.alert(
+        'Gagal mendaftar',
+        error instanceof ApiError ? error.message : 'Terjadi kesalahan. Coba lagi.',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

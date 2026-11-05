@@ -16,7 +16,7 @@ export function AppHeader() {
       <Ionicons name="person-circle" size={38} color={brand.gray} />
       <View style={styles.texts}>
         <AppText weight="semibold" size={12} color={brand.primary}>
-          Halo, {user.name}!
+          Halo, {user?.name ?? '-'}!
         </AppText>
         <AppText size={12} color={brand.gray}>
           Siap melangkah hari ini?

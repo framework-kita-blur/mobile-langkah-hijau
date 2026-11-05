@@ -4,14 +4,6 @@
  * Hapus berkas ini setelah `src/services/*` terhubung ke backend sungguhan.
  */
 
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  npm: string;
-  faculty: string;
-};
-
 export type GeofenceLabel = 'Unpad' | 'Pribadi';
 
 export type Trip = {
@@ -49,14 +41,6 @@ export type Vehicle = {
   cc: number;
   fuel: string;
   isActive: boolean;
-};
-
-export const mockUser: User = {
-  id: 'user-1',
-  name: 'Bagas Anung Bayu Nugraha',
-  email: 'banung0706@gmail.com',
-  npm: '140810240046',
-  faculty: 'Fakultas Matematika dan IPA',
 };
 
 export const mockSummary: MonthlySummary = {

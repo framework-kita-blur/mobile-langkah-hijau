@@ -8,14 +8,15 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { TextField } from '@/components/text-field';
 import { brand } from '@/constants/brand';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { changePassword } from '@/services/auth-service';
 
 export default function ProfileScreen() {
   const { user } = useAuth();
-  // PLACEHOLDER: perubahan profil belum disimpan. TODO: update ke Supabase.
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  // PLACEHOLDER: perubahan profil belum disimpan. TODO: sambungkan ke backend.
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
   const [editing, setEditing] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -27,11 +28,19 @@ export default function ProfileScreen() {
       return;
     }
     setSaving(true);
-    await changePassword(oldPassword, newPassword);
-    setSaving(false);
-    setOldPassword('');
-    setNewPassword('');
-    Alert.alert('Berhasil', 'Perubahan kata sandi disimpan (placeholder).');
+    try {
+      await changePassword(oldPassword, newPassword);
+      setOldPassword('');
+      setNewPassword('');
+      Alert.alert('Berhasil', 'Kata sandi berhasil diperbarui.');
+    } catch (error) {
+      Alert.alert(
+        'Gagal mengganti kata sandi',
+        error instanceof ApiError ? error.message : 'Terjadi kesalahan. Coba lagi.',
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -51,8 +60,8 @@ export default function ProfileScreen() {
             editable={editing}
             keyboardType="email-address"
           />
-          <TextField height={40} value={user.npm} editable={false} />
-          <TextField height={40} value={user.faculty} editable={false} />
+          <TextField height={40} value={user?.npm || '-'} editable={false} />
+          <TextField height={40} value={user?.faculty || '-'} editable={false} />
           <View style={styles.editRow}>
             <Button
               label={editing ? 'Selesai' : 'Ubah'}

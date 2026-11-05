@@ -7,6 +7,7 @@ import { AuthScreen } from '@/components/auth-screen';
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
 import { brand } from '@/constants/brand';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function LoginScreen() {
@@ -21,11 +22,19 @@ export default function LoginScreen() {
       Alert.alert('Data belum lengkap', 'Isi email dan kata sandi terlebih dahulu.');
       return;
     }
+    if (password.length < 8) {
+      Alert.alert('Kata sandi terlalu pendek', 'Kata sandi minimal 8 karakter.');
+      return;
+    }
+
     setLoading(true);
-    // PLACEHOLDER: signIn belum memvalidasi apa pun. Lihat src/services/auth-service.ts.
-    await signIn(email.trim(), password);
-    setLoading(false);
-    router.replace('/home');
+    try {
+      await signIn(email.trim(), password);
+    } catch (error) {
+      Alert.alert('Gagal masuk', error instanceof ApiError ? error.message : 'Terjadi kesalahan. Coba lagi.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

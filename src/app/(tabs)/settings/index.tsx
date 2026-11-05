@@ -19,6 +19,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
 
+  if (!user) return null;
+
   const comingSoon = (title: string) => Alert.alert(title, 'Fitur ini belum tersedia pada tahap antarmuka.');
 
   const menu: MenuItem[] = [
@@ -33,7 +35,6 @@ export default function SettingsScreen() {
 
   const onSignOut = async () => {
     await signOut();
-    router.replace('/login');
   };
 
   return (

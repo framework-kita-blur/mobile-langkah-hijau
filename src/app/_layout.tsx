@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { brand } from '@/constants/brand';
-import { AuthProvider } from '@/providers/auth-provider';
+import { AuthProvider, useAuth } from '@/providers/auth-provider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,21 +23,35 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) SplashScreen.hideAsync();
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) return null;
-
   return (
     <AuthProvider>
+      <RootNavigator fontsReady={fontsLoaded || !!fontError} />
+    </AuthProvider>
+  );
+}
+
+function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
+  const { isSignedIn, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (fontsReady && !isLoading) SplashScreen.hideAsync();
+  }, [fontsReady, isLoading]);
+
+  if (!fontsReady || isLoading) return null;
+
+  return (
+    <>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: brand.cream } }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+        <Stack.Protected guard={!isSignedIn} redirectTo="/home">
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+        </Stack.Protected>
+        <Stack.Protected guard={isSignedIn} redirectTo="/login">
+          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+        </Stack.Protected>
       </Stack>
-    </AuthProvider>
+    </>
   );
 }
